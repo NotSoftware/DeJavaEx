@@ -130,3 +130,9 @@ DeJavaEx is distributed under the [MIT License](LICENSE).
 
 **Developer:** NotSoftware  
 **GitHub:** [github.com/NotSoftware](https://github.com/NotSoftware)
+
+---
+
+# thank
+Thank you to everyone who used the tool; I hope it will be used for research purposes. The tool is designed to reverse-engineer malware written in Java.
+<img width="1701" height="963" alt="Screenshot 2026-10-02 090302" src="https://github.com/user-attachments/assets/867b7b0f-0303-4ef4-ad5a-022ae2c49941" />
