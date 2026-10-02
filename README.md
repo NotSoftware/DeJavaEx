@@ -79,6 +79,16 @@ Set-ExecutionPolicy -Scope Process Bypass -Force
 
 The script compiles the Java analyzer and native engine, then publishes the desktop application to `build/publish/DeJavaEx.exe`. To create the requested delivery folder, copy the published executable to `DeJavaExApp/DeJavaEx.exe`. If the build output executable is currently running, the script uses a timestamped publish directory and prints its path.
 
+## Troubleshooting
+
+After cleaning generated folders, VS Code may temporarily underline AvalonEdit's XAML `TextEditor` as an unknown control because the `obj/` design-time assets were removed. This is an editor/project-reference warning, not a source-code error. Restore the project assets from the repository root:
+
+```powershell
+dotnet restore .\src\desktop\DeJavaEx.UI\DeJavaEx.UI.csproj
+```
+
+The restore recreates `obj/` locally; it is generated output and is ignored by Git. Reopen or reload the project in VS Code if the warning remains.
+
 ## Technologies
 
 | Technology | Role |
