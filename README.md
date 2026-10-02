@@ -16,6 +16,11 @@
 
 > Samples are inspected as data. DeJavaEx does not execute or load the analyzed program.
 
+# DeJavaEx OverFlow 
+
+<img width="1920" height="1032" alt="Screenshot 2026-10-02 145049" src="https://github.com/user-attachments/assets/867b873e-1e8a-40cc-b895-7f59d7608d10" />
+
+
 ## Why DeJavaEx
 
 When reviewing an unfamiliar Java artifact, useful clues are often scattered across hashes, archive listings, bytecode tools, and decompilers. DeJavaEx puts those views together so you can quickly answer practical questions: What is this file? What is inside it? Which APIs does the bytecode reference? Is there a class worth examining more closely?
@@ -160,3 +165,9 @@ DeJavaEx is distributed under the [MIT License](LICENSE).
 
 **Developer:** NotSoftware  
 **GitHub:** [github.com/NotSoftware](https://github.com/NotSoftware)
+
+---
+
+# Thank
+Thank you to everyone who has used the DeJavaEx tool; developing it was quite a challenge. I hope it gives security researchers an edge when analyzing Java-based malware. If you have any questions about the tool, please reach out to me on Discord (Username: NotSoftwaree), and I will get back to you as soon as possible
+
