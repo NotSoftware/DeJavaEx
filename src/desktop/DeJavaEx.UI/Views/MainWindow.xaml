@@ -1,0 +1,989 @@
+<!--
+MIT License
+
+Copyright (c) 2026 DeJavaEx
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<Window x:Class="DeJavaEx.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DeJavaEx.UI.Models"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        Title="DeJavaEx | Static Analysis Workbench"
+        Width="1380" Height="820" MinWidth="980" MinHeight="620"
+        WindowStyle="None" ResizeMode="CanResize"
+        WindowStartupLocation="Manual" Background="#0B1112"
+        FontFamily="Segoe UI" Foreground="#EAF2EF"
+        AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver"
+        Loaded="Window_Loaded" Closing="Window_Closing" StateChanged="Window_StateChanged">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+    <Window.Resources>
+        <SolidColorBrush x:Key="Surface" Color="#121B1D" />
+        <SolidColorBrush x:Key="SurfaceRaised" Color="#172224" />
+        <SolidColorBrush x:Key="Line" Color="#263638" />
+        <SolidColorBrush x:Key="Muted" Color="#91A5A1" />
+        <SolidColorBrush x:Key="Mint" Color="#76E4BC" />
+        <SolidColorBrush x:Key="Amber" Color="#F2BD6A" />
+        <SolidColorBrush x:Key="Coral" Color="#F17E71" />
+        <Style x:Key="Panel" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#0C2018" />
+            <Setter Property="Background" Value="{StaticResource Mint}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonChrome" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#73D9B4" />
+                                <Setter Property="Foreground" Value="#0C2018" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#6AC7A2" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.01" Duration="0:0:0.12" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.01" Duration="0:0:0.12" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.12" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.12" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="QuietButton" TargetType="Button">
+            <Setter Property="Foreground" Value="#DCE8E4" />
+            <Setter Property="Background" Value="#1A2628" />
+            <Setter Property="BorderBrush" Value="#2D3D3F" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="14,9" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="QuietChrome" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="QuietChrome" Property="Background" Value="#202E2F" />
+                                <Setter Property="Foreground" Value="#EAF2EF" />
+                                <Setter TargetName="QuietChrome" Property="BorderBrush" Value="#3A4F50" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="QuietChrome" Property="Background" Value="#1A2628" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.005" Duration="0:0:0.10" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.005" Duration="0:0:0.10" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.10" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.10" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="QuietChrome" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="WindowActionButton" TargetType="Button">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Foreground" Value="#9AAEAA" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonChrome" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#1C2B2D" />
+                                <Setter Property="Foreground" Value="#DCE8E4" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonChrome" Property="Background" Value="#243234" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1.01" Duration="0:0:0.10" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1.01" Duration="0:0:0.10" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.10" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.10" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DarkComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#111A1B" />
+            <Setter Property="Foreground" Value="#EAF2EF" />
+            <Setter Property="BorderBrush" Value="#304245" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <Border x:Name="ComboBorder"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="30" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ContentPresenter Margin="10,0,0,0"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalAlignment="Left"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+
+                                    <Border Grid.Column="1" Background="#172224" BorderBrush="#304245" BorderThickness="1,0,0,0">
+                                        <TextBlock Text="⌄" FontSize="16" FontWeight="Bold" Foreground="#DCE8E4"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <ToggleButton x:Name="ToggleButton" Grid.ColumnSpan="2"
+                                          Focusable="False"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                          ClickMode="Press"
+                                          Background="Transparent"
+                                          BorderThickness="0"
+                                          Opacity="0">
+                            </ToggleButton>
+
+                            <Popup x:Name="Popup"
+                                   Placement="Bottom"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   PopupAnimation="Slide"
+                                   VerticalOffset="4">
+                                <Border Background="#121B1D"
+                                        BorderBrush="#304245"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ComboBox}}"
+                                        MaxHeight="420">
+                                    <ScrollViewer>
+                                        <ItemsPresenter />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ComboBorder" Property="BorderBrush" Value="#405255" />
+                                <Setter TargetName="ComboBorder" Property="Background" Value="#141F20" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ComboBorder" Property="Opacity" Value="0.55" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="#121B1D" />
+            <Setter Property="Foreground" Value="#EAF2EF" />
+            <Setter Property="Padding" Value="10,7" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1B2A2C" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="#1A292A" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CloseWindowActionButton" TargetType="Button" BasedOn="{StaticResource WindowActionButton}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#704540" />
+                    <Setter Property="Foreground" Value="#F4E5E2" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="DarkEditorScrollThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border x:Name="ThumbChrome" Background="#40564F" CornerRadius="5" Margin="2" />
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ThumbChrome" Property="Background" Value="#668075" />
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="ThumbChrome" Property="Background" Value="#83A294" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Background" Value="#101718" />
+            <Setter Property="Width" Value="10" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid x:Name="ScrollTrack" Background="{TemplateBinding Background}">
+                            <Track x:Name="PART_Track" Minimum="{TemplateBinding Minimum}"
+                                   Maximum="{TemplateBinding Maximum}" Value="{TemplateBinding Value}"
+                                   ViewportSize="{TemplateBinding ViewportSize}"
+                                   Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True">
+                                <Track.Thumb><Thumb Style="{StaticResource DarkEditorScrollThumb}" /></Track.Thumb>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Orientation" Value="Horizontal">
+                                <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False" />
+                                <Setter Property="Width" Value="Auto" />
+                                <Setter Property="Height" Value="10" />
+                            </Trigger>
+                            <Trigger Property="Orientation" Value="Vertical">
+                                <Setter Property="Width" Value="10" />
+                                <Setter Property="Height" Value="Auto" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ScrollTrack" Property="Opacity" Value="0.45" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="{StaticResource Surface}" />
+            <Setter Property="Foreground" Value="#EAF2EF" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="RowBackground" Value="#121B1D" />
+            <Setter Property="AlternatingRowBackground" Value="#152022" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#263638" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="RowHeight" Value="38" />
+            <Setter Property="ColumnHeaderHeight" Value="36" />
+            <Setter Property="FontFamily" Value="Cascadia Code" />
+            <Setter Property="FontSize" Value="11" />
+        </Style>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#1B292B" />
+            <Setter Property="Foreground" Value="#91A5A1" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <HierarchicalDataTemplate DataType="{x:Type local:ArchiveNode}" ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Glyph}" Foreground="{Binding Accent}" Margin="0,0,8,0" />
+                <TextBlock Text="{Binding Name}" Foreground="#DCE8E4" />
+                <TextBlock Text="{Binding SizeLabel}" Foreground="#718682" Margin="12,0,0,0" />
+            </StackPanel>
+        </HierarchicalDataTemplate>
+        <HierarchicalDataTemplate DataType="{x:Type local:ProjectNode}" ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Glyph}" Foreground="{Binding Accent}" Margin="0,0,8,0" />
+                <TextBlock Text="{Binding Name}" Foreground="#DCE8E4" />
+            </StackPanel>
+        </HierarchicalDataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="236" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="38" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="30" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Background="#101819" BorderBrush="#263638" BorderThickness="0,0,0,1">
+            <DockPanel Margin="16,0" LastChildFill="False">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="22" Height="22" CornerRadius="5" Background="#76E4BC" Margin="0,0,8,0">
+                        <TextBlock Text="D" Foreground="#0C2018" FontSize="15" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="DeJavaEx" FontSize="12" FontWeight="SemiBold" Foreground="#EAF2EF" VerticalAlignment="Center" />
+                    <TextBlock Text="  /  STATIC ANALYSIS WORKBENCH" FontSize="9" Foreground="#718681" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                    <Button x:Name="OverflowButton" Content="⋯" ToolTip="More actions" Style="{StaticResource WindowActionButton}"
+                            shell:WindowChrome.IsHitTestVisibleInChrome="True" Click="Overflow_Click" />
+                    <Popup x:Name="OverflowPopup" PlacementTarget="{Binding ElementName=OverflowButton}"
+                           Placement="Bottom" VerticalOffset="4" StaysOpen="False" AllowsTransparency="True">
+                        <Border Background="#172224" BorderBrush="#344648" BorderThickness="1" CornerRadius="7" Padding="6" Width="190">
+                            <StackPanel>
+                                <Button Content="Export report (.json)" ToolTip="Save the full analysis report as JSON" Style="{StaticResource QuietButton}" HorizontalContentAlignment="Left"
+                                        Padding="10,8" Margin="0,0,0,4" Click="File_Click" />
+                                <Button Content="About DeJavaEx" Style="{StaticResource QuietButton}" HorizontalContentAlignment="Left"
+                                        Padding="10,8" Margin="0,0,0,4" Click="About_Click" />
+                                <Button Content="Exit" Style="{StaticResource QuietButton}" HorizontalContentAlignment="Left"
+                                        Padding="10,8" Click="CloseWindow_Click" />
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                    <Button Content="−" ToolTip="Minimize" shell:WindowChrome.IsHitTestVisibleInChrome="True" Style="{StaticResource WindowActionButton}" Click="MinimizeWindow_Click" />
+                    <Button x:Name="MaximizeWindowButton" Content="□" ToolTip="Maximize" shell:WindowChrome.IsHitTestVisibleInChrome="True" Style="{StaticResource WindowActionButton}" Click="ToggleMaximize_Click" />
+                    <Button Content="×" ToolTip="Close DeJavaEx" shell:WindowChrome.IsHitTestVisibleInChrome="True" Style="{StaticResource CloseWindowActionButton}" Click="CloseWindow_Click" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.RowSpan="2" Background="#101819" BorderBrush="#263638" BorderThickness="0,0,1,0">
+            <DockPanel LastChildFill="True" Margin="18,22,18,16">
+                <StackPanel DockPanel.Dock="Top">
+                    <StackPanel Orientation="Horizontal" Margin="1,1,0,34">
+                        <Border Width="34" Height="34" CornerRadius="8" Background="#76E4BC" Margin="0,0,11,0">
+                            <TextBlock Text="D" Foreground="#0C2018" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="DeJavaEx" FontSize="18" FontWeight="Bold" Foreground="#F0F6F3" />
+                            <TextBlock Text="RESEARCH WORKBENCH" FontSize="9" Foreground="#77908A" />
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock Text="WORKSPACE" FontSize="10" Foreground="#718681" Margin="5,0,0,10" />
+                    <Button Content="◫   Overview" Tag="0" Click="Navigate_Click" Background="#1A292A" Foreground="#8DE9C8" BorderThickness="0" HorizontalContentAlignment="Left" Padding="13,12" Margin="0,0,0,5" Cursor="Hand" />
+                    <Button Content="⌘   Bytecode refs" Tag="1" Click="Navigate_Click" Background="Transparent" Foreground="#9AAEAA" BorderThickness="0" HorizontalContentAlignment="Left" Padding="13,12" Margin="0,0,0,5" Cursor="Hand" />
+                    <Button Content="▤   Archive map" Tag="2" Click="Navigate_Click" Background="Transparent" Foreground="#9AAEAA" BorderThickness="0" HorizontalContentAlignment="Left" Padding="13,12" Margin="0,0,0,5" Cursor="Hand" />
+                    <Button Content="≋   Extracted strings" Tag="3" Click="Navigate_Click" Background="Transparent" Foreground="#9AAEAA" BorderThickness="0" HorizontalContentAlignment="Left" Padding="13,12" Margin="0,0,0,5" Cursor="Hand" />
+                    <Button Content="⌕   Findings" Tag="4" Click="Navigate_Click" Background="Transparent" Foreground="#9AAEAA" BorderThickness="0" HorizontalContentAlignment="Left" Padding="13,12" Cursor="Hand" />
+                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Background="#172224" BorderBrush="#2B3D3F" BorderThickness="1" CornerRadius="7" Padding="12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,7">
+                            <Ellipse Width="7" Height="7" Fill="#76E4BC" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="STATIC MODE" FontWeight="Bold" FontSize="10" Foreground="#B7D6CA" />
+                        </StackPanel>
+                        <TextBlock Text="Samples are inspected as data. DeJavaEx never launches the analyzed file." TextWrapping="Wrap" FontSize="10" Foreground="#819590" LineHeight="16" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Margin="0,14,0,10">
+                    <DockPanel Margin="3,0,0,0">
+                        <TextBlock Text="PROJECT EXPLORER" FontSize="9" Foreground="#718681" VerticalAlignment="Center" />
+                    </DockPanel>
+                        <UniformGrid Columns="2" Margin="0,8,0,9">
+                        <Button Content="＋  New project" Click="CreateProject_Click" ToolTip="Create a project workspace"
+                            Style="{StaticResource QuietButton}" Padding="6,7" FontSize="9"
+                            HorizontalContentAlignment="Center" Margin="0,0,4,0" />
+                        <Button Content="↗  Open project" Click="OpenProject_Click" ToolTip="Open a DeJavaEx project"
+                            Style="{StaticResource QuietButton}" Padding="6,7" FontSize="9"
+                            HorizontalContentAlignment="Center" Margin="4,0,0,0" />
+                        </UniformGrid>
+                    <TextBlock x:Name="ProjectNameText" Text="No project open" Foreground="#AFC1BC" FontSize="10" TextTrimming="CharacterEllipsis" Margin="3,0,0,8" />
+                    <UniformGrid Columns="2" Margin="0,0,0,7">
+                        <Button Content="＋  Add files" Click="AddProjectFiles_Click" ToolTip="Copy selected samples into this project" Style="{StaticResource QuietButton}" HorizontalContentAlignment="Center" Padding="6,7" FontSize="9" Margin="0,0,4,0" />
+                        <Button Content="↻  Refresh" Click="RefreshProject_Click" ToolTip="Refresh project file list" Style="{StaticResource QuietButton}" HorizontalContentAlignment="Center" Padding="6,7" FontSize="9" Margin="4,0,0,0" />
+                    </UniformGrid>
+                    <TreeView x:Name="ProjectTree" ItemsSource="{Binding ProjectRoots}" MouseDoubleClick="ProjectTree_MouseDoubleClick" Background="#0D1516" BorderThickness="0" Foreground="#DCE8E4" MinHeight="100" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1" Grid.Row="1" Margin="26,16,26,12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="56" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0" Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="STATIC JAVA REVERSE ENGINEERING" FontSize="10" Foreground="#76E4BC" />
+                    <TextBlock x:Name="SelectedFileText" Text="No sample loaded" FontSize="13" Foreground="#A9BCB7" Margin="0,3,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="Open sample" Style="{StaticResource QuietButton}" Click="OpenSample_Click" Margin="0,0,9,0" />
+                <Button x:Name="AnalyzeButton" Grid.Column="2" Content="Analyze file  →" Style="{StaticResource ActionButton}" Click="Analyze_Click" IsEnabled="False" />
+            </Grid>
+
+            <TabControl x:Name="WorkspaceTabs" Grid.Row="1" Background="Transparent" BorderThickness="0" SelectedIndex="0" SelectionChanged="WorkspaceTabs_SelectionChanged">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Foreground" Value="#91A5A1" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Padding" Value="15,8" />
+                        <Setter Property="Margin" Value="0,0,3,3" />
+                        <Setter Property="FontWeight" Value="SemiBold" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TabItem">
+                                    <Grid SnapsToDevicePixels="True">
+                                        <Border x:Name="TabChrome" Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="5" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <Border x:Name="ActiveMark" Height="2" Margin="10,0,10,0"
+                                                Background="#4F9F82" VerticalAlignment="Bottom" Visibility="Collapsed" />
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="#DCE8E4" />
+                                            <Setter TargetName="TabChrome" Property="Background" Value="#171F20" />
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Foreground" Value="#A8C9BC" />
+                                            <Setter TargetName="TabChrome" Property="Background" Value="#1A292A" />
+                                            <Setter TargetName="TabChrome" Property="BorderBrush" Value="#344648" />
+                                            <Setter TargetName="ActiveMark" Property="Visibility" Value="Visible" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Opacity" Value="0.45" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.Resources>
+                <TabItem Header="Overview">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,15,4,8">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="Analysis overview" FontSize="25" FontFamily="Bahnschrift SemiBold" Foreground="#F0F6F3" />
+                                    <TextBlock Text="File identity, packing signals and internal structure" FontSize="12" Foreground="#91A5A1" Margin="0,4,0,0" />
+                                </StackPanel>
+                                <TextBlock x:Name="AnalysisStateBadge" Text="WAITING FOR SAMPLE" Foreground="#A4B6B2" Background="#1B292B" Padding="12,7" FontSize="9" FontWeight="Bold" VerticalAlignment="Center" Margin="20,0,0,0" />
+                            </StackPanel>
+                            <UniformGrid Columns="4" Margin="0,0,0,14">
+                                <Border Style="{StaticResource Panel}" Margin="0,0,10,0"><StackPanel><TextBlock Text="FILE SIZE" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="SizeValue" Text="—" FontSize="23" FontFamily="Bahnschrift SemiBold" Margin="0,9,0,2"/><TextBlock x:Name="FileTypeValue" Text="On-disk sample" Foreground="#718681" FontSize="10"/></StackPanel></Border>
+                                <Border Style="{StaticResource Panel}" Margin="0,0,10,0"><StackPanel><TextBlock Text="SHA-256" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="HashValue" Text="—" FontSize="12" FontFamily="Cascadia Code" TextTrimming="CharacterEllipsis" Margin="0,15,0,5"/><TextBlock Text="Cryptographic file identity" Foreground="#718681" FontSize="10"/></StackPanel></Border>
+                                <Border Style="{StaticResource Panel}" Margin="0,0,10,0"><StackPanel><TextBlock Text="FILE ENTROPY" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="EntropyValue" Text="—" FontSize="23" FontFamily="Bahnschrift SemiBold" Margin="0,9,0,2"/><TextBlock Text="bits per byte · max 8.0" Foreground="#718681" FontSize="10"/></StackPanel></Border>
+                                <Border Style="{StaticResource Panel}"><StackPanel><TextBlock Text="PACKER ASSESSMENT" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="PackerValue" Text="Not assessed" FontSize="19" FontFamily="Bahnschrift SemiBold" Margin="0,9,0,2"/><TextBlock x:Name="PackerDetail" Text="No sample loaded" Foreground="#718681" FontSize="10" TextTrimming="CharacterEllipsis"/></StackPanel></Border>
+                            </UniformGrid>
+                            <Grid Margin="0,0,0,14">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="1.1*"/><ColumnDefinition Width="0.9*"/></Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource Panel}" Margin="0,0,10,0">
+                                    <StackPanel>
+                                        <DockPanel><TextBlock Text="Byte distribution" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="REGION ENTROPY MAP" DockPanel.Dock="Right" FontSize="9" Foreground="#718681" VerticalAlignment="Center"/></DockPanel>
+                                        <TextBlock Text="A segmented view of the sample; brighter regions have higher local entropy." TextWrapping="Wrap" FontSize="10" Foreground="#819590" Margin="0,5,0,14"/>
+                                        <Canvas x:Name="ByteMapCanvas" Height="56" Background="#0D1516" ClipToBounds="True" />
+                                        <DockPanel Margin="0,11,0,0"><TextBlock x:Name="MapStartLabel" Text="0x00000000" FontFamily="Cascadia Code" FontSize="9" Foreground="#718681"/><TextBlock x:Name="MapEndLabel" Text="END OF FILE" DockPanel.Dock="Right" FontFamily="Cascadia Code" FontSize="9" Foreground="#718681"/></DockPanel>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Style="{StaticResource Panel}">
+                                    <StackPanel>
+                                        <DockPanel><TextBlock Text="Packer signals" FontSize="15" FontWeight="SemiBold"/><TextBlock x:Name="PackerConfidence" Text="NO SAMPLE" DockPanel.Dock="Right" FontSize="9" Foreground="#718681" VerticalAlignment="Center"/></DockPanel>
+                                        <TextBlock Text="Signature and byte-pattern heuristics" FontSize="10" Foreground="#819590" Margin="0,5,0,12"/>
+                                        <ItemsControl x:Name="PackerSignalsList"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="#263638" BorderThickness="0,1,0,0" Padding="0,9"><StackPanel Orientation="Horizontal"><Ellipse Width="6" Height="6" Fill="{Binding Accent}" VerticalAlignment="Center" Margin="0,0,9,0"/><TextBlock Text="{Binding Text}" FontSize="11" Foreground="#C9D7D2" TextWrapping="Wrap"/></StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Border Style="{StaticResource Panel}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,10"><TextBlock Text="Inside the file" FontSize="15" FontWeight="SemiBold"/><TextBlock x:Name="ArchiveSummary" Text="ARCHIVE CONTENTS" DockPanel.Dock="Right" FontSize="9" Foreground="#718681" VerticalAlignment="Center"/></DockPanel>
+                                    <TextBlock Text="Package and resource layout · archive entries are listed without extraction" FontSize="10" Foreground="#819590" Margin="0,0,0,10"/>
+                                    <TreeView x:Name="ArchiveTree" ItemsSource="{Binding ArchiveRoots}" Background="#0E1617" BorderThickness="0" Foreground="#DCE8E4" MinHeight="100" MaxHeight="250" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Full Analysis" x:Name="FullAnalysisTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,15,4,8">
+                            <StackPanel Margin="0,0,0,15">
+                                <TextBlock Text="Full file analysis" FontSize="25" FontFamily="Bahnschrift SemiBold" Foreground="#F0F6F3" />
+                                <TextBlock x:Name="FullAssessmentFileText" Text="Analyze a sample to build its static report." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0" />
+                                <TextBlock x:Name="FullAssessmentPathText" Text="" FontSize="10" Foreground="#718681" TextWrapping="Wrap" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="220"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="STATIC RISK SCORE" Foreground="#91A5A1" FontSize="9" />
+                                        <TextBlock x:Name="FullAssessmentScoreText" Text="0 / 100" FontSize="27" FontFamily="Bahnschrift SemiBold" Margin="0,8,0,0" />
+                                        <ProgressBar x:Name="FullAssessmentProgressBar" Minimum="0" Maximum="100" Value="0" Height="8" Margin="0,10,14,0" Background="#263638" BorderThickness="0" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock x:Name="FullAssessmentVerdictText" Text="Not assessed" FontSize="20" FontFamily="Bahnschrift SemiBold" Foreground="#76E4BC" />
+                                        <TextBlock x:Name="FullAssessmentSummaryText" Text="Analyze a sample to generate its static assessment." FontSize="11" Foreground="#C9D7D2" TextWrapping="Wrap" Margin="0,5,0,0" />
+                                        <TextBlock x:Name="FullAssessmentScopeText" Text="Heuristic static triage only. No sample execution or live reputation lookup." FontSize="10" Foreground="#718681" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Cryptographic file hashes" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,10" />
+                                    <UniformGrid Columns="3">
+                                        <StackPanel Margin="0,0,10,0"><TextBlock Text="MD5" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FullFileMd5" Text="—" FontFamily="Cascadia Code" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/></StackPanel>
+                                        <StackPanel Margin="0,0,10,0"><TextBlock Text="SHA-1" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FullFileSha1" Text="—" FontFamily="Cascadia Code" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/></StackPanel>
+                                        <StackPanel><TextBlock Text="SHA-256" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FullFileSha256" Text="—" FontFamily="Cascadia Code" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0"/></StackPanel>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Portable executable structure" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,5" />
+                                    <TextBlock x:Name="FullPeSummaryText" Text="No PE headers found; generic file and string inspection is shown." FontSize="10" Foreground="#91A5A1" TextWrapping="Wrap" Margin="0,0,0,10" />
+                                    <DataGrid x:Name="FullPeSectionsGrid" AutoGenerateColumns="False" MaxHeight="180" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="SECTION" Binding="{Binding Name}" Width="1*"/>
+                                            <DataGridTextColumn Header="RVA" Binding="{Binding VirtualAddress, StringFormat=0x{0:X}}" Width="0.9*"/>
+                                            <DataGridTextColumn Header="RAW SIZE" Binding="{Binding RawSize}" Width="0.9*"/>
+                                            <DataGridTextColumn Header="ENTROPY" Binding="{Binding Entropy, StringFormat=F2}" Width="0.8*"/>
+                                            <DataGridCheckBoxColumn Header="EXEC" Binding="{Binding Executable}" Width="0.6*"/>
+                                            <DataGridCheckBoxColumn Header="WRITE" Binding="{Binding Writable}" Width="0.6*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                    <TextBlock Text="Imported native APIs (capabilities, not proof of execution)" FontSize="11" FontWeight="SemiBold" Margin="0,12,0,7" />
+                                    <DataGrid x:Name="FullPeImportsGrid" AutoGenerateColumns="False" MaxHeight="240" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="MODULE" Binding="{Binding Module}" Width="1.2*"/>
+                                            <DataGridTextColumn Header="IMPORTED SYMBOL" Binding="{Binding Symbol}" Width="2*"/>
+                                            <DataGridTextColumn Header="BY ORDINAL" Binding="{Binding ByOrdinal}" Width="0.8*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,9"><TextBlock Text="Extracted indicators (IOC)" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="FullIocCountText" Text="0 INDICATORS" DockPanel.Dock="Right" FontSize="9" Foreground="#91A5A1" VerticalAlignment="Center"/></DockPanel>
+                                    <DataGrid x:Name="FullIocGrid" ItemsSource="{Binding FileIndicators}" AutoGenerateColumns="False" MaxHeight="260" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="TYPE" Binding="{Binding Type}" Width="0.9*"/>
+                                            <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="2*"/>
+                                            <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1.1*"/>
+                                            <DataGridTextColumn Header="CONTEXT" Binding="{Binding Context}" Width="2*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Extracted strings" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid ItemsSource="{Binding Strings}" AutoGenerateColumns="False" MaxHeight="240" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="3*"/>
+                                            <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Readable decoded text" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid ItemsSource="{Binding DecodedStrings}" AutoGenerateColumns="False" MaxHeight="220" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="ORIGINAL" Binding="{Binding Original}" Width="2*"/>
+                                            <DataGridTextColumn Header="DECODING" Binding="{Binding Encoding}" Width="1.2*"/>
+                                            <DataGridTextColumn Header="DECODED TEXT" Binding="{Binding Decoded}" Width="2*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,9"><TextBlock Text="Risk evidence" FontSize="14" FontWeight="SemiBold"/><TextBlock x:Name="FullEvidenceCountText" Text="0 EVIDENCE ITEMS" DockPanel.Dock="Right" FontSize="9" Foreground="#91A5A1" VerticalAlignment="Center"/></DockPanel>
+                                    <DataGrid x:Name="FullAssessmentEvidenceGrid" AutoGenerateColumns="False" MaxHeight="320" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="CATEGORY" Binding="{Binding Category}" Width="1.2*"/>
+                                            <DataGridTextColumn Header="EVIDENCE" Binding="{Binding Evidence}" Width="3*"/>
+                                            <DataGridTextColumn Header="SOURCE / WEIGHT" Binding="{Binding Source}" Width="1.4*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="Bytecode refs">
+                    <Grid Margin="0,16,0,0">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <StackPanel Margin="0,0,0,13"><TextBlock Text="Bytecode references" FontSize="24" FontFamily="Bahnschrift SemiBold"/><TextBlock x:Name="BytecodeStatusText" Text="Method calls, field access and dynamic invocation sites decoded from class files; static references, not runtime behavior." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0"/></StackPanel>
+                        <DataGrid Grid.Row="1" x:Name="CallsGrid" ItemsSource="{Binding Calls}" AutoGenerateColumns="False" AlternationCount="2">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="CLASS" Binding="{Binding ClassName}" Width="1.3*"/>
+                                <DataGridTextColumn Header="CALL SITE / FIELD" Binding="{Binding MethodName}" Width="1*"/>
+                                <DataGridTextColumn Header="OPCODE" Binding="{Binding Opcode}" Width="1*"/>
+                                <DataGridTextColumn Header="TARGET" Binding="{Binding Target}" Width="1.7*"/>
+                                <DataGridTextColumn Header="SIGNATURE" Binding="{Binding Descriptor}" Width="2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Decompiled source">
+                    <Grid Margin="0,16,0,0">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <DockPanel Margin="0,0,0,12" LastChildFill="False">
+                            <StackPanel DockPanel.Dock="Left" VerticalAlignment="Center">
+                                <TextBlock Text="Java source view" FontSize="23" FontFamily="Bahnschrift SemiBold" />
+                                <TextBlock x:Name="DecompilerStatusText" Text="Choose a class after analyzing a Java sample." FontSize="10" Foreground="#91A5A1" Margin="0,3,0,0" />
+                            </StackPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <ComboBox x:Name="DecompiledClassSelector" ItemsSource="{Binding DecompiledClasses}"
+                                          Width="300" MaxDropDownHeight="420" IsTextSearchEnabled="True"
+                                          Style="{StaticResource DarkComboBox}"
+                                          ToolTip="Select a class to decompile" VerticalContentAlignment="Center" />
+                                <Button x:Name="DecompileClassButton" Content="Decompile" Style="{StaticResource ActionButton}"
+                                        Click="DecompileClass_Click" IsEnabled="False" Margin="8,0,0,0" />
+                                <Button Content="Copy source" Style="{StaticResource QuietButton}" Click="CopySource_Click" Margin="8,0,0,0" />
+                                <Button Content="Save .java" Style="{StaticResource QuietButton}" Click="SaveSource_Click" Margin="8,0,0,0" />
+                            </StackPanel>
+                        </DockPanel>
+                        <Border Grid.Row="1" Background="#0E1516" BorderBrush="#263638" BorderThickness="1" CornerRadius="6">
+                            <Grid>
+                                <avalonedit:TextEditor x:Name="DecompiledSourceEditor" IsReadOnly="True" ShowLineNumbers="True"
+                                                       FontFamily="Cascadia Code" FontSize="12" Padding="10"
+                                                       Background="#0E1516" Foreground="#DCE8E4"
+                                                       HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+                                <TextBlock x:Name="SourcePlaceholderText"
+                                           Text="Choose a class after analyzing a Java sample.\nNo source is loaded yet."
+                                           Foreground="#B9C9C3" FontSize="13" Padding="18,16,0,0"
+                                           IsHitTestVisible="False" TextWrapping="Wrap" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Archive map">
+                    <Grid Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <StackPanel Margin="0,0,0,13"><TextBlock Text="Archive structure" FontSize="24" FontFamily="Bahnschrift SemiBold"/><TextBlock Text="Directory hierarchy, entry sizes and compression are read from the archive index. No files are extracted." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0"/></StackPanel>
+                        <TreeView Grid.Row="1" ItemsSource="{Binding ArchiveRoots}" Background="#121B1D" BorderBrush="#263638" Foreground="#DCE8E4" Padding="14"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Extracted strings">
+                    <Grid Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <StackPanel Margin="0,0,0,13"><TextBlock Text="Extracted strings" FontSize="24" FontFamily="Bahnschrift SemiBold"/><TextBlock x:Name="StringSummaryText" Text="Printable ASCII strings and Java constant-pool text." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0"/></StackPanel>
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding Strings}" AutoGenerateColumns="False" AlternationCount="2">
+                            <DataGrid.Columns><DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="3*"/><DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1*"/></DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Findings">
+                    <Grid Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <StackPanel Margin="0,0,0,13"><TextBlock Text="Static findings" FontSize="24" FontFamily="Bahnschrift SemiBold"/><TextBlock Text="Indicators are investigative leads and may include false positives." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0"/></StackPanel>
+                        <DataGrid Grid.Row="1" x:Name="FindingsGrid" ItemsSource="{Binding Findings}" AutoGenerateColumns="False" AlternationCount="2">
+                            <DataGrid.Columns><DataGridTextColumn Header="SIGNAL" Binding="{Binding Category}" Width="1.1*"/><DataGridTextColumn Header="EVIDENCE" Binding="{Binding Evidence}" Width="3*"/><DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1*"/></DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Map">
+                    <Grid Margin="0,16,0,0">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                        <StackPanel Margin="0,0,0,13">
+                            <TextBlock Text="Code relationship map" FontSize="24" FontFamily="Bahnschrift SemiBold" />
+                            <TextBlock x:Name="CodeMapStatus" Text="Analyze a Java sample to map class references." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0" />
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Ellipse Width="8" Height="8" Fill="#76E4BC" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBlock Text="Classes in sample" FontSize="10" Foreground="#A9BCB7" Margin="0,0,16,0" />
+                                <Ellipse Width="8" Height="8" Fill="#E2B66B" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBlock Text="Referenced APIs / dynamic calls" FontSize="10" Foreground="#A9BCB7" />
+                            </StackPanel>
+                        </StackPanel>
+                        <ScrollViewer x:Name="CodeMapScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#0D1516"
+                                      Cursor="Hand" PreviewMouseLeftButtonDown="CodeMapScrollViewer_PreviewMouseLeftButtonDown"
+                                      PreviewMouseLeftButtonUp="CodeMapScrollViewer_PreviewMouseLeftButtonUp"
+                                      PreviewMouseMove="CodeMapScrollViewer_PreviewMouseMove"
+                                      LostMouseCapture="CodeMapScrollViewer_LostMouseCapture"
+                                      ToolTip="Drag with the left mouse button to move around the map">
+                            <Canvas x:Name="CodeMapCanvas" Width="1250" Height="560" Background="#0D1516" />
+                        </ScrollViewer>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="File" x:Name="FileDetailsTab">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,15,4,8">
+                            <StackPanel Margin="0,0,0,15">
+                                <TextBlock Text="File details" FontSize="25" FontFamily="Bahnschrift SemiBold" Foreground="#F0F6F3" />
+                                <TextBlock x:Name="FileReportStatus" Text="Analyze a sample to inspect its complete report." FontSize="11" Foreground="#91A5A1" Margin="0,4,0,0" />
+                            </StackPanel>
+                            <UniformGrid Columns="4" Margin="0,0,0,12">
+                                <Border Style="{StaticResource Panel}" Margin="0,0,9,0"><StackPanel><TextBlock Text="FILE NAME" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FileDetailName" Text="—" FontSize="15" TextWrapping="Wrap" Margin="0,9,0,2"/></StackPanel></Border>
+                                <Border Style="{StaticResource Panel}" Margin="0,0,9,0"><StackPanel><TextBlock Text="FILE TYPE" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FileDetailType" Text="—" FontSize="15" TextWrapping="Wrap" Margin="0,9,0,2"/></StackPanel></Border>
+                                <Border Style="{StaticResource Panel}" Margin="0,0,9,0"><StackPanel><TextBlock Text="SIZE" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FileDetailSize" Text="—" FontSize="18" FontFamily="Bahnschrift SemiBold" Margin="0,9,0,2"/></StackPanel></Border>
+                                <Border Style="{StaticResource Panel}"><StackPanel><TextBlock Text="ENTROPY" Foreground="#91A5A1" FontSize="9"/><TextBlock x:Name="FileDetailEntropy" Text="—" FontSize="18" FontFamily="Bahnschrift SemiBold" Margin="0,9,0,2"/></StackPanel></Border>
+                            </UniformGrid>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="MD5" Foreground="#91A5A1" FontSize="9" />
+                                    <TextBlock x:Name="FileDetailMd5" Text="—" FontFamily="Cascadia Code" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,10" />
+                                    <TextBlock Text="SHA-1" Foreground="#91A5A1" FontSize="9" />
+                                    <TextBlock x:Name="FileDetailSha1" Text="—" FontFamily="Cascadia Code" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,10" />
+                                    <TextBlock Text="SHA-256" Foreground="#91A5A1" FontSize="9" />
+                                    <TextBlock x:Name="FileDetailHash" Text="—" FontFamily="Cascadia Code" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,10" />
+                                    <TextBlock Text="SOURCE PATH" Foreground="#91A5A1" FontSize="9" />
+                                    <TextBlock x:Name="FileDetailPath" Text="—" FontSize="11" Foreground="#C9D7D2" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                </StackPanel>
+                            </Border>
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource Panel}" Margin="0,0,9,0">
+                                    <StackPanel>
+                                        <TextBlock Text="PACKER ASSESSMENT" Foreground="#91A5A1" FontSize="9" />
+                                        <TextBlock x:Name="FilePackerVerdict" Text="Not assessed" FontSize="17" FontFamily="Bahnschrift SemiBold" Margin="0,8,0,2" />
+                                        <TextBlock x:Name="FilePackerConfidence" Text="No sample loaded" Foreground="#91A5A1" FontSize="10" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                        <ItemsControl x:Name="FilePackerEvidenceList"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="#263638" BorderThickness="0,1,0,0" Padding="0,7"><TextBlock Text="{Binding Text}" FontSize="10" Foreground="#C9D7D2" TextWrapping="Wrap"/></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                                <Border Grid.Column="1" Style="{StaticResource Panel}">
+                                    <StackPanel>
+                                        <TextBlock Text="JAVA ANALYSIS" Foreground="#91A5A1" FontSize="9" />
+                                        <TextBlock x:Name="FileJavaSummary" Text="No Java analysis available" FontSize="12" Foreground="#C9D7D2" TextWrapping="Wrap" Margin="0,8,0,0" />
+                                        <TextBlock Text="Class-file versions indicate the Java target, not the compiler vendor." FontSize="10" Foreground="#718681" TextWrapping="Wrap" Margin="0,9,0,0" />
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Java classes and compiler target" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid x:Name="FileClassesGrid" AutoGenerateColumns="False" MaxHeight="220" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="CLASS" Binding="{Binding Name}" Width="2*"/>
+                                            <DataGridTextColumn Header="CLASS FILE" Binding="{Binding ClassFileVersion}" Width="1*"/>
+                                            <DataGridTextColumn Header="JAVA TARGET" Binding="{Binding JavaTarget}" Width="1*"/>
+                                            <DataGridTextColumn Header="METHODS" Binding="{Binding MethodCount}" Width="0.7*"/>
+                                            <DataGridTextColumn Header="FIELDS" Binding="{Binding FieldCount}" Width="0.7*"/>
+                                            <DataGridTextColumn Header="CALLS" Binding="{Binding CallCount}" Width="0.7*"/>
+                                            <DataGridTextColumn Header="DYNAMIC" Binding="{Binding DynamicCallCount}" Width="0.8*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Archive entries" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid x:Name="FileEntriesGrid" AutoGenerateColumns="False" MaxHeight="240" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="PATH" Binding="{Binding Path}" Width="3*"/>
+                                            <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="0.8*"/>
+                                            <DataGridTextColumn Header="COMPRESSED" Binding="{Binding CompressedSize}" Width="1*"/>
+                                            <DataGridTextColumn Header="COMPRESSION" Binding="{Binding Compression}" Width="1*"/>
+                                            <DataGridTextColumn Header="CRC32" Binding="{Binding Crc32}" Width="0.9*"/>
+                                            <DataGridCheckBoxColumn Header="DIRECTORY" Binding="{Binding IsDirectory}" Width="0.8*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Bytecode references" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid ItemsSource="{Binding Calls}" AutoGenerateColumns="False" MaxHeight="240" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="CLASS" Binding="{Binding ClassName}" Width="1.4*"/>
+                                            <DataGridTextColumn Header="METHOD" Binding="{Binding MethodName}" Width="1.1*"/>
+                                            <DataGridTextColumn Header="OPCODE" Binding="{Binding Opcode}" Width="1*"/>
+                                            <DataGridTextColumn Header="TARGET" Binding="{Binding Target}" Width="2*"/>
+                                            <DataGridTextColumn Header="SIGNATURE" Binding="{Binding Descriptor}" Width="2*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Regional entropy" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid x:Name="FileRegionsGrid" AutoGenerateColumns="False" MaxHeight="200" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="REGION" Binding="{Binding Index}" Width="0.7*"/>
+                                            <DataGridTextColumn Header="OFFSET" Binding="{Binding Offset, StringFormat=0x{0:X}}" Width="1.2*"/>
+                                            <DataGridTextColumn Header="SIZE" Binding="{Binding Size}" Width="1*"/>
+                                            <DataGridTextColumn Header="ENTROPY (BITS/BYTE)" Binding="{Binding Entropy, StringFormat=F3}" Width="1.5*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Detected encoded strings" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid ItemsSource="{Binding DecodedStrings}" AutoGenerateColumns="False" MaxHeight="240" AlternationCount="2">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="ORIGINAL" Binding="{Binding Original}" Width="2*"/>
+                                            <DataGridTextColumn Header="ENCODING" Binding="{Binding Encoding}" Width="1*"/>
+                                            <DataGridTextColumn Header="DECODED TEXT" Binding="{Binding Decoded}" Width="2*"/>
+                                            <DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Extracted strings" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid ItemsSource="{Binding Strings}" AutoGenerateColumns="False" MaxHeight="220" AlternationCount="2">
+                                        <DataGrid.Columns><DataGridTextColumn Header="VALUE" Binding="{Binding Value}" Width="3*"/><DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1*"/></DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource Panel}">
+                                <StackPanel>
+                                    <TextBlock Text="Static findings" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,9" />
+                                    <DataGrid ItemsSource="{Binding Findings}" AutoGenerateColumns="False" MaxHeight="220" AlternationCount="2">
+                                        <DataGrid.Columns><DataGridTextColumn Header="SIGNAL" Binding="{Binding Category}" Width="1.2*"/><DataGridTextColumn Header="EVIDENCE" Binding="{Binding Evidence}" Width="3*"/><DataGridTextColumn Header="SOURCE" Binding="{Binding Source}" Width="1*"/></DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="About" x:Name="AboutTab">
+                    <Grid Margin="0,16,0,0">
+                        <Border Style="{StaticResource Panel}" HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="720">
+                            <StackPanel>
+                                <TextBlock Text="About DeJavaEx" FontSize="25" FontFamily="Bahnschrift SemiBold" Foreground="#F0F6F3" />
+                                <TextBlock Text="Static Java reverse-engineering workbench" FontSize="13" Foreground="#91A5A1" Margin="0,5,0,18" />
+                                <TextBlock Text="Developer" FontSize="9" Foreground="#718681" />
+                                <TextBlock Text="NotSoftware" FontSize="17" FontWeight="SemiBold" Foreground="#76E4BC" Margin="0,3,0,18" />
+                                <TextBlock Text="DeJavaEx inspects .class, .jar, .war and .ear files without executing them. The C++ engine reads file metadata, entropy, archive layout and packer indicators. The Java engine decodes bytecode references, dynamic call sites, field access and sensitive API use." TextWrapping="Wrap" FontSize="12" LineHeight="20" Foreground="#C9D7D2" />
+                                <Border Background="#111A1B" BorderBrush="#2B3D3F" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,18,0,0">
+                                    <TextBlock Text="Static indicators are investigative leads. They can be incomplete or produce false positives and are not a malware verdict." TextWrapping="Wrap" FontSize="11" Foreground="#9CB0AB" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+        <Border Grid.Column="1" Grid.Row="2" BorderBrush="#263638" BorderThickness="0,1,0,0" Background="#0E1516">
+            <DockPanel Margin="14,0">
+                <Ellipse Width="6" Height="6" Fill="#76E4BC" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBlock x:Name="StatusText" Text="Ready · static inspection only" FontSize="10" Foreground="#829691" VerticalAlignment="Center" />
+                <TextBlock Text="JAVA BYTECODE  +  C++ NATIVE ENGINE" DockPanel.Dock="Right" FontSize="9" Foreground="#607571" VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+        <Grid x:Name="WelcomeOverlay" Grid.ColumnSpan="2" Grid.RowSpan="3" Background="#D9091011" Panel.ZIndex="10">
+            <Border Width="510" Padding="34" Background="#172224" BorderBrush="#385151" BorderThickness="1" CornerRadius="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel>
+                    <Border Width="48" Height="48" CornerRadius="12" Background="#76E4BC" HorizontalAlignment="Left" Margin="0,0,0,23"><TextBlock Text="D" Foreground="#0C2018" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                    <TextBlock Text="Welcome to DeJavaEx" FontSize="28" FontFamily="Bahnschrift SemiBold" Foreground="#F0F6F3" />
+                    <TextBlock Text="A focused workspace for static Java reverse engineering." FontSize="13" Foreground="#9CB0AB" Margin="0,8,0,20" />
+                    <Border Background="#111A1B" BorderBrush="#2B3D3F" BorderThickness="1" CornerRadius="7" Padding="15" Margin="0,0,0,22">
+                        <StackPanel><TextBlock Text="STATIC INSPECTION ONLY" Foreground="#76E4BC" FontSize="10" FontWeight="Bold"/><TextBlock Text="DeJavaEx reads bytecode, archive indexes and file bytes. It does not execute the sample. Findings are clues for investigation, not a malware verdict." TextWrapping="Wrap" LineHeight="19" FontSize="11" Foreground="#B7C7C2" Margin="0,8,0,0"/></StackPanel>
+                    </Border>
+                    <Button Content="Open the analysis workspace  →" Style="{StaticResource ActionButton}" HorizontalAlignment="Left" Click="DismissWelcome_Click" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
