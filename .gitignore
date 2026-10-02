@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/__pycache__/
+*.py[cod]
+*.obj
+.vs/
+build/java/
+build/java-engine/
+build/cfr-*.jar
+build/native/
+DeJavaExApp/
