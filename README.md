@@ -16,8 +16,6 @@
 
 > Samples are inspected as data. DeJavaEx does not execute or load the analyzed program.
 
-<img width="1254" height="1254" alt="file_00000000c4588210b2e5cbfb586bdc1f" src="https://github.com/user-attachments/assets/72460954-f777-452a-a779-d35d1e802f88" />
-
 
 # DeJavaEx OverFlow 
 
