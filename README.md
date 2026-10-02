@@ -139,6 +139,7 @@ src/
 DeJavaEx is distributed under the [MIT License](LICENSE).
 
 **Developer:** NotSoftware  
+
 **GitHub:** [github.com/NotSoftware](https://github.com/NotSoftware)
 
 **Discord:** NotSoftwaree
