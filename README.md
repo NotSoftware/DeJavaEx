@@ -12,7 +12,7 @@
 	<img alt="Python utility" src="https://img.shields.io/badge/Utility-Python-3776AB?logo=python&logoColor=white">
 </p>
 
-**DeJavaEx is a Windows desktop workbench for static analysis of Java class files and archives.** It brings file inspection, bytecode references, archive browsing, findings, and CFR-powered source reconstruction into one focused dark interface.
+**DeJavaEx is a Windows desktop workbench for multi-format static file triage, with deeper structural analysis for Java and Windows PE files.** It combines hashes, readable strings, IOCs, PE imports, Java bytecode references, archive browsing, and CFR-powered source reconstruction.
 
 > Samples are inspected as data. DeJavaEx does not execute or load the analyzed program.
 
@@ -22,38 +22,53 @@ When reviewing an unfamiliar Java artifact, useful clues are often scattered acr
 
 It is designed for triage, learning, and investigation. Results are evidence to guide further review, not a verdict about whether a file is malicious.
 
+## Recent Updates
+
+- Added **Full Analysis** with MD5, SHA-1, SHA-256, strings, decoded text, IOCs, evidence, and an explainable heuristic risk score.
+- Added PE architecture, sections, entropy, overlay size, and imported APIs; imports describe capabilities, not proof that APIs ran.
+- Added URL, domain, IPv4, registry path, file path, email, and embedded-hash indicators, plus static clues for execution, networking, persistence, injection, and anti-analysis.
+- Added signature recognition for PE, ELF, Mach-O, DEX, PDF, Office, RTF, SQLite, images, and common archives.
+- Added APK class scanning and bounded in-memory scanning of ZIP-based entry contents.
+- Reworked the **Map** tab into a layered, pannable class/API graph with directional links.
+- Moved Base64, hexadecimal, URL-percent, and Java Unicode escape decoding into the Java engine.
+
 ## Features
 
 | Feature | What it shows | Why it helps |
 | --- | --- | --- |
 | File overview | File type and size, SHA-256, total and regional entropy | Identify and compare samples, and spot regions that may merit inspection |
+| Full file assessment | MD5, SHA-1, SHA-256, PE structure/imports, Java bytecode evidence, bounded archive strings, decoded text, extracted IOCs, and an explainable risk score | Collect triage evidence in one report without executing the sample |
 | Archive map | Archive hierarchy, entry sizes, and compression information | Understand package contents without extracting files |
 | Bytecode references | Method calls, field access, opcodes, signatures, and dynamic call sites | Trace static dependencies and focus review on notable behavior |
 | Extracted strings | Printable byte strings and Java constant-pool text | Find embedded URLs, paths, messages, and other useful clues |
 | Static findings | References to selected sensitive APIs, with evidence and source | Surface areas such as process execution, networking, reflection, crypto, and file access |
 | Packer signals | Known tool markers and entropy-based clues | Flag possible obfuscation or packing for manual investigation |
+| Multi-format triage | File signatures, hashes, entropy, strings, and IOCs | Inspect non-Java files without treating a string match as proof of behavior |
 | Decompiled source | Reconstructed Java-like source for a selected class, with syntax highlighting | Make bytecode easier to inspect; copy or save the reconstruction for follow-up |
 | Project workspaces | Create or reopen `.dproj` projects and collect sample files | Keep related samples organized between analysis sessions |
 
 ## Interface
 
-The app uses a dark, low-glare workspace with overview and detail tabs, a project explorer, and a syntax-highlighted source pane. Small hover and press transitions give buttons restrained feedback, while the class selector uses a slide-open dropdown. The interface uses lightweight text glyphs for navigation and status rather than an external icon pack.
+The app uses a dark, low-glare workspace with Overview, Full Analysis, File details, and a pannable Map tab, alongside a project explorer and syntax-highlighted source pane. The Map tab lays out sample classes and referenced APIs with directional links.
 
 ## Supported Inputs
 
+- Any file can be submitted for file identification, MD5/SHA hashes, entropy, readable-string, and IOC triage.
 - Java `.class` files
-- Java `.jar`, `.war`, and `.ear` archives
-- Nested JAR entries inside supported archives
+- Java `.jar`, `.war`, `.ear`, and Android `.apk` archives
+- Windows PE executables and libraries receive header, section, entropy, overlay, and import-table analysis.
+- ELF, Mach-O, DEX, PDF, Office, RTF, SQLite, images, scripts, and other formats receive signature identification and generic string/IOC triage.
+- ZIP-based archives, including nested JAR entries and Office Open XML packages
 - Project files created by DeJavaEx (`.dproj`)
 
-Archive browsing reads the archive index; it does not extract entries. The Java engine also recognizes ZIP-formatted archives, although the desktop workflow is centered on the Java extensions above.
+Archive browsing reads the archive index. Full Analysis may read bounded ZIP entry contents in memory for string and IOC scanning; it does not write extracted files to disk. Java bytecode analysis also scans classes inside APK archives.
 
 ## Quick Start
 
 1. Launch the published `DeJavaEx.exe`.
 2. Choose **Open sample**, or create a workspace with **Project Explorer > New project** and add files.
 3. Select a sample and choose **Analyze file**.
-4. Review **Overview**, **Bytecode refs**, **Archive map**, **Extracted strings**, and **Findings**.
+4. Review **Overview**, **Full Analysis**, **Map**, **Bytecode refs**, **Archive map**, **Extracted strings**, and **Findings**.
 5. To reconstruct a class, open **Decompiled source**, select a class, and choose **Decompile**. Copy or save the resulting source as needed.
 
 ## Requirements
@@ -94,8 +109,9 @@ The restore recreates `obj/` locally; it is generated output and is ignored by G
 | Technology | Role |
 | --- | --- |
 | C# / WPF | Windows desktop interface and project workflow |
-| C++17 | Native file, archive, entropy, and packer-signal analysis |
+| C++17 | Native hashing, format signatures, archive index, entropy, strings, and PE import/section parsing |
 | Java 11 | Class-file and bytecode analysis engine |
+| C# assessment service | IOC extraction and explainable risk aggregation across native and Java evidence |
 | CFR 0.152 | Java-like source reconstruction |
 | AvalonEdit | Read-only source editor with Java syntax highlighting |
 | Python 3 | Optional standalone file metadata utility; not required by the desktop app |
@@ -115,12 +131,16 @@ python -m unittest discover -s src\tools\python\tests -t . -v
 
 ## Safety and Analysis Limits
 
-- DeJavaEx does not execute, load, or compile analyzed samples, and it does not extract archive entries.
+- DeJavaEx does not execute, load, or compile analyzed samples. ZIP entries may be decompressed in memory for bounded string/IOC inspection, but are never written to disk.
+- Archive string inspection is limited to 10,000 entries, 2 MiB per entry, and 64 MiB total expanded data. The native reader limits input files to 1 GiB.
 - Packer detection is heuristic. High entropy can be caused by ordinary compression, and missing markers do not prove that a file is unpacked.
 - API references are static indicators, not observed behavior. They may be incomplete or produce false positives.
+- PE imports, registry strings, script commands, and Java API references indicate possible capabilities; they do not prove those actions ran. A network endpoint is an IOC candidate, not a confirmed C2.
+- The full-file risk score is explainable static triage, not an antivirus verdict or a live reputation lookup. A low score does not prove a file is safe.
 - Decompiled output is reconstructed Java-like source. Original comments and exact source structure cannot be recovered reliably.
-- The native ZIP index reader does not support ZIP64 archives.
-- Java analysis skips individual class entries larger than 64 MiB.
+- The native archive tree reader does not support ZIP64; the bounded content scan uses the .NET ZIP reader.
+- Java analysis skips classes over 64 MiB and stops after scanning 100,000 classes; nested JAR entries have a 256 MiB size limit.
+- PE import/section analysis currently applies to Windows PE. ELF and Mach-O receive generic static triage rather than dependency-table parsing.
 
 Use the findings as investigative leads and validate important conclusions with additional analysis.
 
@@ -128,9 +148,9 @@ Use the findings as investigative leads and validate important conclusions with 
 
 ```text
 src/
-	desktop/DeJavaEx.UI/  WPF app, views, models, and services
+	desktop/DeJavaEx.UI/  WPF app, views, models, and analysis services
 	engine/java/          Java bytecode analyzer
-	engine/native/        C++ analysis engine
+	engine/native/        C++ file, archive, and PE analysis engine
 	tools/python/         Optional file metadata utility and tests
 ```
 
@@ -139,7 +159,4 @@ src/
 DeJavaEx is distributed under the [MIT License](LICENSE).
 
 **Developer:** NotSoftware  
-
 **GitHub:** [github.com/NotSoftware](https://github.com/NotSoftware)
-
-**Discord:** NotSoftwaree
